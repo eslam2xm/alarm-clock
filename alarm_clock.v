@@ -25,7 +25,7 @@ begin
 			sec <= 6'b000000;
 			min <= 6'b000000;
 			hour <= 6'b000000;
-			
+			temp_tclk <= 0;
 			alarm<= 1'b0;
 		end
 	else if(LD_alarm)
@@ -48,29 +48,37 @@ begin
 		begin
 			alarm <= 1'b1;
 		end
+//-----------------------time calculation----------------------------------------//
+		
 	else //clock should work normally because no input signals were detected
 		begin
-			temp_tclk <= temp_tclk + 1;
-			
-			if(temp_tclk == 9) //each 10 temp_tclk's = 1 sec
+			if(hour == 23 && min == 59 && sec==59 && temp_tclk==9 )
+				begin
+					hour <= 0;
+					min <= 0;
+					sec <= 0;
+					temp_tclk <=0;
+				end	
+			else if(min == 59 && sec==59 && temp_tclk==9) //forcing time not to be updated before a complete min passes
+				begin
+					min <= 0;
+					sec <= 0;
+					temp_tclk <= 0;
+					hour <= hour + 1;
+				end
+			else if(sec == 59 && temp_tclk ==9) //forcing time not to be updated before a complete second passes
+				begin
+					sec <= 0;
+					temp_tclk <= 0;
+					min <= min + 1;
+				end
+			else if(temp_tclk == 9) //each 10 temp_tclk's = 1 sec
 				begin
 					sec <= sec + 1;
 					temp_tclk <= 0;
 				end
-			if(sec == 59 && temp_tclk ==9) //forcing time not to be updated before a complete second passes
-				begin
-					sec <= 0;
-					min <= min + 1;
-				end
-			if(min == 59 && sec==59 && temp_tclk==9) //forcing time not to be updated before a complete min passes
-				begin
-					min <= 0;
-					hour <= hour + 1;
-				end
-			if(hour == 24 && min == 59 && sec==59 && temp_tclk==9 )
-				begin
-					hour <= 0;
-				end	
+			else
+				temp_tclk <= temp_tclk + 1;	
 		end
 end
 
